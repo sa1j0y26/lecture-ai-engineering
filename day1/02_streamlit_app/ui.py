@@ -6,13 +6,13 @@ from database import save_to_db, get_chat_history, get_db_count, clear_db
 from llm import generate_response
 from data import create_sample_evaluation_data
 from metrics import get_metrics_descriptions
+from config import MODEL_NAMES
 
 # --- チャットページのUI ---
-def display_chat_page(pipe):
+def display_chat_page(pipes):
     """チャットページのUIを表示する"""
     st.subheader("使用モデル")
-    model_options = ["gemma2", "gemma2-7b"]
-    st.session_state.selected_model = st.selectbox("モデルを選択", model_options)
+    st.session_state.selected_model = st.selectbox("モデルを選択", MODEL_NAMES)
     st.subheader("質問を入力してください")
     user_question = st.text_area("質問", key="question_input", height=100, value=st.session_state.get("current_question", ""))
     submit_button = st.button("質問を送信")
@@ -27,7 +27,7 @@ def display_chat_page(pipe):
     if "feedback_given" not in st.session_state:
         st.session_state.feedback_given = False
     if "selected_model" not in st.session_state:
-        st.session_state.selected_model = "gemma2"
+        st.session_state.selected_model = MODEL_NAMES[0]
 
     # 質問が送信された場合
     if submit_button and user_question:
@@ -36,7 +36,7 @@ def display_chat_page(pipe):
         st.session_state.feedback_given = False # フィードバック状態もリセット
 
         with st.spinner("モデルが回答を生成中..."):
-            answer, response_time = generate_response(pipe, user_question)
+            answer, response_time = generate_response(pipes[MODEL_NAMES.index(st.session_state.selected_model)], user_question)
             st.session_state.current_answer = answer
             st.session_state.response_time = response_time
             # ここでrerunすると回答とフィードバックが一度に表示される

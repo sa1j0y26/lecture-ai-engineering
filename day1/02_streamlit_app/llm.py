@@ -4,7 +4,7 @@ import torch
 from transformers import pipeline
 import streamlit as st
 import time
-from config import MODEL_NAME
+from config import MODEL_NAMES
 from huggingface_hub import login
 
 # モデルをキャッシュして再利用
@@ -18,17 +18,23 @@ def load_model():
         
         device = "cuda" if torch.cuda.is_available() else "cpu"
         st.info(f"Using device: {device}") # 使用デバイスを表示
-        pipe = pipeline(
-            "text-generation",
-            model=MODEL_NAME,
-            model_kwargs={"torch_dtype": torch.bfloat16},
-            device=device
-        )
-        st.success(f"モデル '{MODEL_NAME}' の読み込みに成功しました。")
-        return pipe
+        pipes = [None] * len(MODEL_NAMES)
+        for i in range(len(MODEL_NAMES)):
+            try:
+                pipes[i] = pipeline(
+                    "text-generation",
+                    model=MODEL_NAMES[i],
+                    model_kwargs={"torch_dtype": torch.bfloat16},
+                    device=device
+                )
+                st.success(f"モデル '{MODEL_NAMES[i]}' の読み込みに成功しました。")
+            except Exception as e:
+                st.error(f"モデル '{MODEL_NAMES[i]}' の読み込みに失敗しました: {e}")
+                st.error("GPUメモリ不足の可能性があります。不要なプロセスを終了するか、より小さいモデルの使用を検討してください。")
+                pipes[i] = None
+        return pipes
     except Exception as e:
-        st.error(f"モデル '{MODEL_NAME}' の読み込みに失敗しました: {e}")
-        st.error("GPUメモリ不足の可能性があります。不要なプロセスを終了するか、より小さいモデルの使用を検討してください。")
+        st.error(f"モデルの読み込みに失敗しました: {e}")
         return None
 
 def generate_response(pipe, user_question):
