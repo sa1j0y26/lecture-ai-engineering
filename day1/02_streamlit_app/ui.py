@@ -10,6 +10,9 @@ from metrics import get_metrics_descriptions
 # --- チャットページのUI ---
 def display_chat_page(pipe):
     """チャットページのUIを表示する"""
+    st.subheader("使用モデル")
+    model_options = ["gemma2", "gemma2-7b"]
+    st.session_state.selected_model = st.selectbox("モデルを選択", model_options)
     st.subheader("質問を入力してください")
     user_question = st.text_area("質問", key="question_input", height=100, value=st.session_state.get("current_question", ""))
     submit_button = st.button("質問を送信")
@@ -23,6 +26,8 @@ def display_chat_page(pipe):
         st.session_state.response_time = 0.0
     if "feedback_given" not in st.session_state:
         st.session_state.feedback_given = False
+    if "selected_model" not in st.session_state:
+        st.session_state.selected_model = "gemma2"
 
     # 質問が送信された場合
     if submit_button and user_question:
