@@ -47,6 +47,7 @@ def display_chat_page(pipes):
         st.subheader("回答:")
         st.markdown(st.session_state.current_answer) # Markdownで表示
         st.info(f"応答時間: {st.session_state.response_time:.2f}秒")
+        st.info(f"使用モデル: {st.session_state.selected_model}")
 
         # フィードバックフォームを表示 (まだフィードバックされていない場合)
         if not st.session_state.feedback_given:
@@ -86,7 +87,8 @@ def display_feedback_form():
                 combined_feedback,
                 correct_answer,
                 is_correct,
-                st.session_state.response_time
+                st.session_state.response_time,
+                model_name=st.session_state.selected_model  # 使用したモデル名を保存
             )
             st.session_state.feedback_given = True
             st.success("フィードバックが保存されました！")
@@ -162,10 +164,11 @@ def display_history_list(history_df):
 
             # 評価指標の表示
             st.markdown("---")
-            cols = st.columns(3)
-            cols[0].metric("正確性スコア", f"{row['is_correct']:.1f}")
-            cols[1].metric("応答時間(秒)", f"{row['response_time']:.2f}")
-            cols[2].metric("単語数", f"{row['word_count']}")
+            cols = st.columns(4)
+            cols[0].metric("使用モデル", f"{row['model_name']}")
+            cols[1].metric("正確性スコア", f"{row['is_correct']:.1f}")
+            cols[2].metric("応答時間(秒)", f"{row['response_time']:.2f}")
+            cols[3].metric("単語数", f"{row['word_count']}")
 
             cols = st.columns(3)
             # NaNの場合はハイフン表示

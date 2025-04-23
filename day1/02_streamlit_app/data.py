@@ -96,6 +96,7 @@ def create_sample_evaluation_data():
         added_count = 0
         # 各サンプルをデータベースに保存
         for item in SAMPLE_QUESTIONS_DATA:
+            
             # save_to_dbが必要な引数のみ渡す
             save_to_db(
                 question=item["question"],
@@ -103,7 +104,8 @@ def create_sample_evaluation_data():
                 feedback=item["feedback"],
                 correct_answer=item["correct_answer"],
                 is_correct=item["is_correct"],
-                response_time=item["response_time"]
+                response_time=item["response_time"],
+                model_name=item.get("model_name", "")
             )
             added_count += 1
 
