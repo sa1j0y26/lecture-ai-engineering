@@ -6,10 +6,13 @@ from database import save_to_db, get_chat_history, get_db_count, clear_db
 from llm import generate_response
 from data import create_sample_evaluation_data
 from metrics import get_metrics_descriptions
+from config import MODEL_NAMES
 
 # --- チャットページのUI ---
-def display_chat_page(pipe):
+def display_chat_page(pipes):
     """チャットページのUIを表示する"""
+    st.subheader("使用モデル")
+    st.session_state.selected_model = st.selectbox("モデルを選択", MODEL_NAMES)
     st.subheader("質問を入力してください")
     user_question = st.text_area("質問", key="question_input", height=100, value=st.session_state.get("current_question", ""))
     submit_button = st.button("質問を送信")
@@ -23,6 +26,8 @@ def display_chat_page(pipe):
         st.session_state.response_time = 0.0
     if "feedback_given" not in st.session_state:
         st.session_state.feedback_given = False
+    if "selected_model" not in st.session_state:
+        st.session_state.selected_model = MODEL_NAMES[0]
 
     # 質問が送信された場合
     if submit_button and user_question:
@@ -31,7 +36,7 @@ def display_chat_page(pipe):
         st.session_state.feedback_given = False # フィードバック状態もリセット
 
         with st.spinner("モデルが回答を生成中..."):
-            answer, response_time = generate_response(pipe, user_question)
+            answer, response_time = generate_response(pipes[MODEL_NAMES.index(st.session_state.selected_model)], user_question)
             st.session_state.current_answer = answer
             st.session_state.response_time = response_time
             # ここでrerunすると回答とフィードバックが一度に表示される
@@ -42,6 +47,7 @@ def display_chat_page(pipe):
         st.subheader("回答:")
         st.markdown(st.session_state.current_answer) # Markdownで表示
         st.info(f"応答時間: {st.session_state.response_time:.2f}秒")
+        st.info(f"使用モデル: {st.session_state.selected_model}")
 
         # フィードバックフォームを表示 (まだフィードバックされていない場合)
         if not st.session_state.feedback_given:
@@ -81,7 +87,8 @@ def display_feedback_form():
                 combined_feedback,
                 correct_answer,
                 is_correct,
-                st.session_state.response_time
+                st.session_state.response_time,
+                model_name=st.session_state.selected_model  # 使用したモデル名を保存
             )
             st.session_state.feedback_given = True
             st.success("フィードバックが保存されました！")
@@ -157,10 +164,11 @@ def display_history_list(history_df):
 
             # 評価指標の表示
             st.markdown("---")
-            cols = st.columns(3)
-            cols[0].metric("正確性スコア", f"{row['is_correct']:.1f}")
-            cols[1].metric("応答時間(秒)", f"{row['response_time']:.2f}")
-            cols[2].metric("単語数", f"{row['word_count']}")
+            cols = st.columns(4)
+            cols[0].metric("使用モデル", f"{row['model_name']}")
+            cols[1].metric("正確性スコア", f"{row['is_correct']:.1f}")
+            cols[2].metric("応答時間(秒)", f"{row['response_time']:.2f}")
+            cols[3].metric("単語数", f"{row['word_count']}")
 
             cols = st.columns(3)
             # NaNの場合はハイフン表示
