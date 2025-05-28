@@ -129,3 +129,26 @@ def test_value_ranges(sample_data):
         results.append(result)
         is_successful = all(result.success for result in results)
     assert is_successful, "データの値範囲が期待通りではありません"
+
+
+def test_statistical_properties(sample_data):
+    """主要な数値カラムの統計量（平均・中央値・標準偏差）が極端な値でないことを検証"""
+    stats_expectations = {
+        "Age": {"mean": (15, 45), "std": (10, 20)},
+        "Fare": {"mean": (10, 80), "std": (30, 80)},
+        "SibSp": {"mean": (0, 2), "std": (0, 2)},
+        "Parch": {"mean": (0, 1), "std": (0, 2)},
+    }
+    for col, ranges in stats_expectations.items():
+        if col not in sample_data.columns:
+            continue
+        col_data = sample_data[col].dropna()
+        mean = col_data.mean()
+        median = col_data.median()
+        std = col_data.std()
+        # 平均値
+        assert ranges["mean"][0] <= mean <= ranges["mean"][1], f"{col}の平均値が異常: {mean}"
+        # 標準偏差
+        assert ranges["std"][0] <= std <= ranges["std"][1], f"{col}の標準偏差が異常: {std}"
+        # 中央値
+        assert ranges["mean"][0] <= median <= ranges["mean"][1], f"{col}の中央値が異常: {median}"
