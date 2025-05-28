@@ -147,8 +147,14 @@ def test_statistical_properties(sample_data):
         median = col_data.median()
         std = col_data.std()
         # 平均値
-        assert ranges["mean"][0] <= mean <= ranges["mean"][1], f"{col}の平均値が異常: {mean}"
+        assert (
+            ranges["mean"][0] <= mean <= ranges["mean"][1]
+        ), f"{col}の平均値が異常: {mean}"
         # 標準偏差
-        assert ranges["std"][0] <= std <= ranges["std"][1], f"{col}の標準偏差が異常: {std}"
+        assert (
+            ranges["std"][0] <= std <= ranges["std"][1]
+        ), f"{col}の標準偏差が異常: {std}"
         # 中央値
-        assert ranges["mean"][0] <= median <= ranges["mean"][1], f"{col}の中央値が異常: {median}"
+        assert (
+            ranges["mean"][0] <= median <= ranges["mean"][1]
+        ), f"{col}の中央値が異常: {median}"
